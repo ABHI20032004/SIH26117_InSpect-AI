@@ -1,5 +1,8 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, UploadFile, File, Form
 from pydantic import BaseModel
+from typing import Optional
+import os
+import uuid
 
 from ..services.model_router import route_question
 
@@ -20,7 +23,7 @@ class ChatRequest(BaseModel):
     # "code"
     # "pdf"
     # "ocr"
-    mode:  None = None
+    mode: None = None
 
     # Context information
     # sent by frontend when files are available
@@ -28,10 +31,38 @@ class ChatRequest(BaseModel):
     has_image: bool = False
 
 
-@router.post("")
-def chat(request: ChatRequest):
+# =========================================================
+# IMAGE UPLOAD DIRECTORY
+# =========================================================
 
-    question = request.message.strip()
+CHAT_IMAGE_DIR = "data/chat_images"
+
+os.makedirs(
+    CHAT_IMAGE_DIR,
+    exist_ok=True
+)
+
+
+# =========================================================
+# CHAT ENDPOINT
+# =========================================================
+
+@router.post("")
+async def chat(
+
+    message: str = Form(...),
+
+    mode: Optional[str] = Form(None),
+
+    has_pdf: bool = Form(False),
+
+    has_image: bool = Form(False),
+
+    image: Optional[UploadFile] = File(None)
+
+):
+
+    question = message.strip()
 
     if not question:
 
@@ -40,7 +71,48 @@ def chat(request: ChatRequest):
             detail="Message cannot be empty"
         )
 
+    image_path = None
+
     try:
+
+        # =================================================
+        # SAVE IMAGE FOR OCR
+        # =================================================
+
+        if image is not None:
+
+            extension = os.path.splitext(
+                image.filename or ""
+            )[1]
+
+            filename = (
+                f"{uuid.uuid4().hex}"
+                f"{extension}"
+            )
+
+            image_path = os.path.join(
+                CHAT_IMAGE_DIR,
+                filename
+            )
+
+            with open(
+                image_path,
+                "wb"
+            ) as buffer:
+
+                while True:
+
+                    chunk = await image.read(
+                        1024 * 1024
+                    )
+
+                    if not chunk:
+                        break
+
+                    buffer.write(chunk)
+
+            has_image = True
+
 
         # =================================================
         # AUTOMATIC MODEL ROUTING
@@ -50,11 +122,13 @@ def chat(request: ChatRequest):
 
             question,
 
-            has_pdf=request.has_pdf,
+            has_pdf=has_pdf,
 
-            has_image=request.has_image,
+            has_image=has_image,
 
-            requested_mode=request.mode
+            requested_mode=mode,
+
+            image_path=image_path
         )
 
 
@@ -94,3 +168,22 @@ def chat(request: ChatRequest):
             detail=str(e)
 
         )
+
+    finally:
+
+        # =================================================
+        # DELETE TEMPORARY IMAGE
+        # =================================================
+
+        if image_path and os.path.exists(
+            image_path
+        ):
+
+            try:
+
+                os.remove(
+                    image_path
+                )
+
+            except Exception:
+                pass

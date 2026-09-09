@@ -20,7 +20,16 @@ import Analytics from "./pages/Analytics";
 import Settings from "./pages/Settings";
 import InspectionDetails from "./pages/InspectionDetails";
 
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import ProtectedRoute from "./components/ProtectedRoute";
+
 import "./App.css";
+
+
+// =====================================================
+// APPLICATION LAYOUT
+// =====================================================
 
 function Layout() {
   return (
@@ -33,63 +42,76 @@ function Layout() {
         <Header />
 
         <main className="page-container">
+
           <Routes>
 
-            <Route
-              path="/"
-              element={<Navigate to="/dashboard" replace />}
-            />
-
+            {/* Dashboard */}
             <Route
               path="/dashboard"
               element={<Dashboard />}
             />
 
+            {/* Documents */}
             <Route
               path="/documents"
               element={<Documents />}
             />
 
+            {/* AI Copilot */}
             <Route
               path="/copilot"
               element={<Copilot />}
             />
 
+            {/* Inspections */}
             <Route
               path="/inspections"
               element={<Inspections />}
             />
 
+            {/* Inspection Details */}
+            <Route
+              path="/inspections/:id"
+              element={<InspectionDetails />}
+            />
+
+            {/* Findings */}
             <Route
               path="/findings"
               element={<Findings />}
             />
 
+            {/* Corrective Actions */}
             <Route
               path="/actions"
               element={<Actions />}
             />
 
+            {/* Evidence */}
             <Route
               path="/evidence"
               element={<Evidence />}
             />
 
+            {/* Reports */}
             <Route
               path="/reports"
               element={<Reports />}
             />
 
+            {/* Analytics */}
             <Route
               path="/analytics"
               element={<Analytics />}
             />
 
+            {/* Settings */}
             <Route
               path="/settings"
               element={<Settings />}
             />
 
+            {/* Unknown application route */}
             <Route
               path="*"
               element={
@@ -100,12 +122,8 @@ function Layout() {
               }
             />
 
-              <Route
-                path="/inspections/:id"
-                element={<InspectionDetails />}
-              />
-
           </Routes>
+
         </main>
 
       </div>
@@ -114,10 +132,47 @@ function Layout() {
   );
 }
 
+
+// =====================================================
+// APP
+// =====================================================
+
 export default function App() {
   return (
     <BrowserRouter>
-      <Layout />
+
+      <Routes>
+
+        {/* ============================================
+            PUBLIC AUTHENTICATION
+           ============================================ */}
+
+        <Route
+          path="/login"
+          element={<Login />}
+        />
+
+        <Route
+          path="/register"
+          element={<Register />}
+        />
+
+
+        {/* ============================================
+            PROTECTED APPLICATION
+           ============================================ */}
+
+        <Route
+          path="/*"
+          element={
+            <ProtectedRoute>
+              <Layout />
+            </ProtectedRoute>
+          }
+        />
+
+      </Routes>
+
     </BrowserRouter>
   );
 }

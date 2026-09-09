@@ -116,35 +116,67 @@ export async function deleteDocument(
 // =====================================================
 // CHAT
 // =====================================================
-
 export async function sendChatMessage(data) {
-  const response = await fetch(
-    "http://127.0.0.1:8000/api/chat",
-    {
-      method: "POST",
 
-      headers: {
-        "Content-Type": "application/json",
-      },
+  const formData =
+    new FormData();
 
-      body: JSON.stringify({
-        message: data.message,
-      }),
-    }
+  formData.append(
+    "message",
+    data.message
   );
 
-  const result = await response.json();
+  formData.append(
+    "has_pdf",
+    "false"
+  );
+
+  formData.append(
+    "has_image",
+    data.image ? "true" : "false"
+  );
+
+  if (data.mode) {
+
+    formData.append(
+      "mode",
+      data.mode
+    );
+
+  }
+
+  if (data.image) {
+
+    formData.append(
+      "image",
+      data.image
+    );
+
+  }
+
+  const response =
+    await fetch(
+      `${API_URL}/api/chat`,
+      {
+        method: "POST",
+        body: formData,
+      }
+    );
+
+  const result =
+    await response.json();
 
   if (!response.ok) {
+
     throw new Error(
       result.detail ||
       "Failed to get AI response"
     );
+
   }
 
   return result;
 }
-
 
 // =====================================================
 // INSPECTIONS

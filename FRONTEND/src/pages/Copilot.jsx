@@ -10,6 +10,9 @@ import {
   Check,
   Loader2,
   Trash2,
+  Paperclip,
+  X,
+  Image as ImageIcon,
 } from "lucide-react";
 
 import {
@@ -458,11 +461,28 @@ function MessageBubble({ message }) {
 
         <div className="message-text">
 
-          <FormattedAnswer
-            text={message.content}
-          />
+  {message.image && (
+    <div className="uploaded-chat-image">
 
+      <img
+        src={message.image}
+        alt={message.imageName || "Uploaded image"}
+      />
+
+      {message.imageName && (
+        <div className="uploaded-image-name">
+          {message.imageName}
         </div>
+      )}
+
+    </div>
+  )}
+
+  <FormattedAnswer
+    text={message.content}
+  />
+
+</div>
 
 
         {!isUser && (
@@ -501,56 +521,93 @@ function MessageBubble({ message }) {
 
 export default function Copilot() {
 
-  const [messages, setMessages] =
-    useState([]);
+  const [messages, setMessages] = useState([]);
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const [input, setInput] =
-    useState("");
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
 
-  const [loading, setLoading] =
-    useState(false);
+  const imageInputRef = useRef(null);
+  const bottomRef = useRef(null);
+  const textareaRef = useRef(null);
 
-  const [error, setError] =
-    useState("");
+  // ===================================================
+  // IMAGE UPLOAD
+  // ===================================================
 
+  function handleImageSelect(event) {
+    const file = event.target.files?.[0];
 
-  const bottomRef =
-    useRef(null);
+    if (!file) {
+      return;
+    }
 
-  const textareaRef =
-    useRef(null);
+    if (!file.type.startsWith("image/")) {
+      setError("Please select a valid image file.");
+      return;
+    }
 
+    if (imagePreview) {
+      URL.revokeObjectURL(imagePreview);
+    }
+
+    setSelectedImage(file);
+    setImagePreview(URL.createObjectURL(file));
+    setError("");
+
+    // Reset input so the same image can be selected again later
+    event.target.value = "";
+  }
+
+  function removeSelectedImage() {
+    if (imagePreview) {
+      URL.revokeObjectURL(imagePreview);
+    }
+
+    setSelectedImage(null);
+    setImagePreview(null);
+
+    if (imageInputRef.current) {
+      imageInputRef.current.value = "";
+    }
+  }
 
   // ===================================================
   // AUTO SCROLL
   // ===================================================
 
   useEffect(() => {
-
     bottomRef.current?.scrollIntoView({
       behavior: "smooth",
     });
-
   }, [messages, loading]);
-
 
   // ===================================================
   // NEW CHAT
   // ===================================================
 
   function newChat() {
-
     setMessages([]);
-
     setInput("");
-
     setError("");
+
+    if (imagePreview) {
+      URL.revokeObjectURL(imagePreview);
+    }
+
+    setSelectedImage(null);
+    setImagePreview(null);
+
+    if (imageInputRef.current) {
+      imageInputRef.current.value = "";
+    }
 
     setTimeout(() => {
       textareaRef.current?.focus();
     }, 50);
   }
-
 
   // ===================================================
   // SEND
@@ -566,15 +623,17 @@ export default function Copilot() {
     }
 
 
-    const userMessage = {
-
-      id: Date.now(),
-
-      role: "user",
-
-      content: question,
-
-    };
+const userMessage = {
+  id: Date.now(),
+  role: "user",
+  content: question,
+  image: selectedImage
+    ? URL.createObjectURL(selectedImage)
+    : null,
+  imageName: selectedImage
+    ? selectedImage.name
+    : null,
+};
 
 
     setMessages(current => [
@@ -583,6 +642,13 @@ export default function Copilot() {
     ]);
 
     setInput("");
+
+    if (imagePreview) {
+      URL.revokeObjectURL(imagePreview);
+    }
+
+    setSelectedImage(null);
+    setImagePreview(null);
 
     setError("");
 
@@ -604,9 +670,13 @@ export default function Copilot() {
        */
 
       const response =
-        await sendChatMessage({
-          message: question,
-        });
+  await sendChatMessage({
+
+    message: question,
+
+    image: selectedImage,
+
+  });
 
 
       const assistantMessage = {
@@ -990,61 +1060,129 @@ export default function Copilot() {
           INPUT
       ================================================= */}
 
-      <div className="copilot-input-area">
+<div className="copilot-input-area">
 
-        <div className="copilot-input-box">
+  {/* Uploaded image preview */}
+  {selectedImage && imagePreview && (
+    <div className="selected-image-preview">
 
-          <textarea
-            ref={textareaRef}
-            value={input}
-            onChange={event =>
-              setInput(
-                event.target.value
-              )
-            }
-            onKeyDown={handleKeyDown}
-            placeholder="Ask NSpectAI anything..."
-            rows={1}
-            disabled={loading}
-          />
+      <img
+        src={imagePreview}
+        alt="Selected upload"
+        className="selected-image-preview-img"
+      />
 
-
-          <button
-            className="send-button"
-            onClick={handleSend}
-            disabled={
-              !input.trim() ||
-              loading
-            }
-          >
-
-            {loading ? (
-              <Loader2
-                size={18}
-                className="spin"
-              />
-            ) : (
-              <Send size={18} />
-            )}
-
-          </button>
-
-        </div>
-
-
-        <div className="copilot-input-footer">
-
-          <span>
-            NSpectAI automatically selects the best local model
-          </span>
-
-          <span>
-            Enter to send • Shift + Enter for new line
-          </span>
-
-        </div>
-
+      <div className="selected-image-info">
+        <span>{selectedImage.name}</span>
       </div>
+
+      <button
+        type="button"
+        onClick={removeSelectedImage}
+        disabled={loading}
+        title="Remove image"
+        className="remove-selected-image"
+      >
+        <X size={14} />
+      </button>
+
+    </div>
+  )}
+
+  <div className="copilot-input-box">
+
+    <input
+      ref={imageInputRef}
+      type="file"
+      accept="image/*"
+      onChange={handleImageSelect}
+      style={{ display: "none" }}
+    />
+
+    <button
+      type="button"
+      className="image-upload-button"
+      onClick={() =>
+        imageInputRef.current?.click()
+      }
+      disabled={loading}
+      title="Upload image for OCR"
+    >
+      <Paperclip size={18} />
+    </button>
+
+    <textarea
+      ref={textareaRef}
+      value={input}
+      onChange={event =>
+        setInput(event.target.value)
+      }
+      onKeyDown={handleKeyDown}
+      placeholder="Ask NSpectAI anything..."
+      rows={1}
+      disabled={loading}
+    />
+
+    <button
+      className="send-button"
+      onClick={handleSend}
+      disabled={
+        !input.trim() ||
+        loading
+      }
+    >
+
+      {loading ? (
+        <Loader2
+          size={18}
+          className="spin"
+        />
+      ) : (
+        <Send size={18} />
+      )}
+
+    </button>
+
+  </div>
+
+  <div className="copilot-input-footer">
+
+    <span>
+      NSpectAI automatically selects the best local model
+    </span>
+
+    <span>
+      Enter to send • Shift + Enter for new line
+    </span>
+
+  </div>
+
+</div>
+
+
+ {selectedImage && imagePreview && (
+  <div className="selected-image-preview">
+
+    <img
+      src={imagePreview}
+      alt={selectedImage.name}
+      className="selected-image-preview-img"
+    />
+
+    <span>
+      {selectedImage.name}
+    </span>
+
+    <button
+      type="button"
+      onClick={removeSelectedImage}
+      disabled={loading}
+    >
+      <X size={14} />
+    </button>
+
+  </div>
+)}
 
 
       {/* ================================================

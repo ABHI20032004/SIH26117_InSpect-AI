@@ -49,7 +49,7 @@ const mainItems = [
 
 const intelligenceItems = [
   {
-    name: "AI Copilot",
+    name: "AI InSpect",
     path: "/copilot",
     icon: Bot,
   },
@@ -77,7 +77,7 @@ export default function Sidebar() {
 
         <div>
           <div className="logo-title">
-            InspectAI
+            InSpectAI
           </div>
 
           <div className="logo-subtitle">
