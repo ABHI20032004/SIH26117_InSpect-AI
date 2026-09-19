@@ -324,7 +324,7 @@ export default function Documents() {
           <div
             style={{
               color: "#2563eb",
-              fontSize: 10,
+              fontSize: 18,
               fontWeight: 800,
               letterSpacing: 1.4,
               marginBottom: 6,
@@ -339,7 +339,7 @@ export default function Documents() {
           </h1>
 
 
-          <div className="page-description">
+          <div className="color-gray-600 font-medium">
             Upload, index and manage inspection
             knowledge for your local AI copilot.
           </div>

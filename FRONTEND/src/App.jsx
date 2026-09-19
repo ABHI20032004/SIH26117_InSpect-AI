@@ -19,6 +19,7 @@ import Reports from "./pages/Reports";
 import Analytics from "./pages/Analytics";
 import Settings from "./pages/Settings";
 import InspectionDetails from "./pages/InspectionDetails";
+import NetworkMonitor from "./pages/NetworkMonitor";
 
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -110,6 +111,10 @@ function Layout() {
               path="/settings"
               element={<Settings />}
             />
+            <Route
+  path="/network"
+  element={<NetworkMonitor />}
+/>
 
             {/* Unknown application route */}
             <Route

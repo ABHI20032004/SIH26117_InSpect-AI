@@ -21,7 +21,6 @@ def ask_pdf_question(
         question
     )
 
-
     # --------------------------------
     # 2. Search ChromaDB
     # --------------------------------
@@ -30,7 +29,6 @@ def ask_pdf_question(
         query_embedding,
         top_k
     )
-
 
     if not results:
 
@@ -43,7 +41,6 @@ def ask_pdf_question(
             "sources": []
         }
 
-
     documents = results.get(
         "documents",
         [[]]
@@ -54,18 +51,15 @@ def ask_pdf_question(
         [[]]
     )[0]
 
-
     # --------------------------------
-    # 3. Build context
+    # 3. Build context + sources
     # --------------------------------
 
     context_parts = []
-
     sources = []
 
-    for document, metadata in zip(
-        documents,
-        metadatas
+    for index, (document, metadata) in enumerate(
+        zip(documents, metadatas)
     ):
 
         filename = metadata.get(
@@ -78,64 +72,99 @@ def ask_pdf_question(
             "Unknown"
         )
 
-        context_parts.append(
-
-            f"Source: {filename}, "
-            f"Page: {page_number}\n"
-            f"{document}"
-
+        document_id = metadata.get(
+            "document_id",
+            None
         )
 
+        # --------------------------------
+        # Context for LLM
+        # --------------------------------
+
+        context_parts.append(
+            f"""
+SOURCE [{index + 1}]
+Document: {filename}
+Page: {page_number}
+
+Content:
+{document}
+"""
+        )
+
+        # --------------------------------
+        # Source information for frontend
+        # --------------------------------
+
         sources.append({
-
+            "source_id": index + 1,
             "filename": filename,
-
-            "page_number": page_number
-
+            "page_number": page_number,
+            "document_id": document_id
         })
-
 
     context = "\n\n".join(
         context_parts
     )
-
 
     # --------------------------------
     # 4. Ask Llama
     # --------------------------------
 
     prompt = f"""
-You are an industrial inspection AI assistant.
+You are NSpectAI's industrial inspection
+AI assistant.
 
 Answer the user's question using ONLY
-the information provided in the document
-context below.
+the information contained in the provided
+document context.
 
-If the answer is not present in the
-documents, clearly say that the
-information was not found.
+IMPORTANT SOURCE RULES:
 
-Do not invent facts.
+1. Every factual statement must be
+   supported by the provided context.
 
-User question:
+2. When using information from a source,
+   cite it using this exact format:
+
+   [Source 1, Page 3]
+
+3. If multiple sources support a statement,
+   cite all relevant sources.
+
+4. Never invent a document name,
+   page number, finding, measurement,
+   date, risk level, or other fact.
+
+5. If the requested information cannot
+   be found in the provided context,
+   clearly say:
+
+   "The requested information was not
+   found in the provided documents."
+
+6. Do not cite sources that do not support
+   the statement.
+
+User Question:
 {question}
 
-Document context:
+Document Context:
 {context}
 
-Provide a clear and professional answer.
+Return a clear and professional answer
+with inline source citations.
 """
-
 
     answer = generate_answer(
         prompt
     )
 
+    # --------------------------------
+    # 5. Return answer + references
+    # --------------------------------
 
     return {
-
         "answer": answer,
-
         "sources": sources
-
     }

@@ -13,6 +13,7 @@ from .routes.dashboard import router as dashboard_router
 from .routes.reports import router as reports_router
 from .routes.evidence import router as evidence_router
 from .routes.auth import router as auth_router
+from .routes.network import router as network_router
 
 
 # =====================================================
@@ -92,6 +93,10 @@ app.include_router(
 
 app.include_router(
     auth_router
+)
+
+app.include_router(
+    network_router
 )
 
 

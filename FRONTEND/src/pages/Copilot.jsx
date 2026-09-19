@@ -13,6 +13,7 @@ import {
   Paperclip,
   X,
   Image as ImageIcon,
+  Image,
 } from "lucide-react";
 
 import {
@@ -481,6 +482,42 @@ function MessageBubble({ message }) {
   <FormattedAnswer
     text={message.content}
   />
+  {!isUser &&
+  message.type === "pdf" &&
+  message.sources &&
+  message.sources.length > 0 && (
+    <div className="message-sources">
+
+      <div className="sources-title">
+        <FileText size={14} />
+        <span>PDF Sources</span>
+      </div>
+
+      <div className="sources-list">
+
+        {message.sources.map((source, index) => (
+          <div
+            key={`${source.filename}-${source.page_number}-${index}`}
+            className="source-item"
+          >
+
+            <FileText size={13} />
+
+            <span className="source-filename">
+              {source.filename}
+            </span>
+
+            <span className="source-page">
+              Page {source.page_number}
+            </span>
+
+          </div>
+        ))}
+
+      </div>
+
+    </div>
+)}
 
 </div>
 
@@ -776,13 +813,13 @@ const userMessage = {
         <div className="copilot-title">
 
           <div className="copilot-logo">
-            <Sparkles size={19} />
+            <Sparkles size={29} />
           </div>
 
           <div>
 
             <h1>
-              AI Copilot
+              InSpect AI
             </h1>
 
             <p>
@@ -928,7 +965,7 @@ const userMessage = {
 
               <div>
 
-                <Sparkles size={14} />
+                <Sparkles size={24} />
 
                 <span>
                   General
@@ -943,7 +980,7 @@ const userMessage = {
 
               <div>
 
-                <Code2 size={14} />
+                <Code2 size={24} />
 
                 <span>
                   Code
@@ -955,10 +992,24 @@ const userMessage = {
 
               </div>
 
+              <div>
+
+                <Image size={24} />
+
+                <span>
+                  Image
+                </span>
+
+                <small>
+                  Tesseract OCR
+                </small>
+
+              </div>
+
 
               <div>
 
-                <FileText size={14} />
+                <FileText size={24} />
 
                 <span>
                   Documents
@@ -1000,7 +1051,7 @@ const userMessage = {
                 <div className="message-content">
 
                   <div className="message-name">
-                    NSpectAI
+                    InSpect AI
                   </div>
 
 
@@ -1148,7 +1199,7 @@ const userMessage = {
   <div className="copilot-input-footer">
 
     <span>
-      NSpectAI automatically selects the best local model
+    InSpectAI automatically selects the best local model
     </span>
 
     <span>

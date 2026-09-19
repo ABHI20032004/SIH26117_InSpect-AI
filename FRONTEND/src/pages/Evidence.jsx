@@ -725,15 +725,15 @@ function EvidenceRow({
 
         {isImage ? (
 
-          <Image size={18} />
+          <Image size={28} />
 
         ) : isPDF ? (
 
-          <FileText size={18} />
+          <FileText size={28} />
 
         ) : (
 
-          <File size={18} />
+          <File size={28} />
 
         )}
 

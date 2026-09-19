@@ -616,7 +616,7 @@ async function handleStatusChange(
             Findings
           </h1>
 
-          <div className="page-description">
+          <div className="font-size-5 text-gray-700">
             Review and manage AI-detected
             inspection findings.
           </div>
@@ -927,7 +927,7 @@ async function handleStatusChange(
                               "Inspection Finding"}
                           </strong>
 
-                          <span>
+                          {/* <span>
                             {finding.description
                               ? finding.description.slice(
                                   0,
@@ -940,7 +940,7 @@ async function handleStatusChange(
                                     : ""
                                 )
                               : "No description"}
-                          </span>
+                          </span> */}
 
                         </div>
 

@@ -20,16 +20,17 @@ const mainItems = [
     path: "/dashboard",
     icon: LayoutDashboard,
   },
+    {
+    name: "Documents",
+    path: "/documents",
+    icon: FileText,
+  },
   {
     name: "Inspections",
     path: "/inspections",
     icon: ClipboardCheck,
   },
-  {
-    name: "Documents",
-    path: "/documents",
-    icon: FileText,
-  },
+
   {
     name: "Findings",
     path: "/findings",
@@ -45,6 +46,7 @@ const mainItems = [
     path: "/evidence",
     icon: Image,
   },
+
 ];
 
 const intelligenceItems = [
@@ -126,19 +128,25 @@ export default function Sidebar() {
           }}
         >
           System
-        </div>
+
+            
+          <NavigationItem
+                  item={{
+                    name: "Network Monitor",  
+                    path: "/network",
+                    icon: ShieldCheck,
+                  }}
+          />
+              
 
         <NavigationItem
           item={{
-            name: "Settings",
+            name: "Setting",
             path: "/settings",
             icon: Settings,
           }}
         />
-
-      </nav>
-
-
+        
       <div className="sidebar-bottom">
 
         <div className="engine-status">
@@ -151,10 +159,16 @@ export default function Sidebar() {
           <div className="engine-text">
             Ollama · ChromaDB · SQLite
           </div>
+         </div>
 
         </div>
 
       </div>
+
+      </nav>
+
+
+
 
     </aside>
   );

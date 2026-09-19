@@ -610,7 +610,7 @@ export default function Inspections() {
             Inspections
           </h1>
 
-          <div className="page-description">
+          <div className="font-size-19 text-gray-600">
             Create, analyze and manage
             industrial safety inspections.
           </div>
@@ -1652,7 +1652,7 @@ export default function Inspections() {
               <div>
 
                 <span>
-                  Status
+                  Status : 
                 </span>
 
                 <strong
@@ -1674,7 +1674,7 @@ export default function Inspections() {
               <div>
 
                 <span>
-                  Risk
+                  Risk : 
                 </span>
 
                 <strong
@@ -1696,7 +1696,7 @@ export default function Inspections() {
               <div>
 
                 <span>
-                  Compliance
+                  Compliance : 
                 </span>
 
                 <strong>
