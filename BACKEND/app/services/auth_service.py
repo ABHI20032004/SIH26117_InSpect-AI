@@ -38,7 +38,8 @@ SECRET_KEY = "ThisIsASecretKeyForJWTTokenGenerationAndShouldBeKeptSecret"
 
 ALGORITHM = "HS256"
 
-ACCESS_TOKEN_EXPIRE_MINUTES = 60
+# Token valid for 7 days
+ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7
 
 
 # =====================================================
@@ -53,11 +54,8 @@ def create_access_token(
     to_encode = data.copy()
 
     if expires_delta:
-
         expire = datetime.now(timezone.utc) + expires_delta
-
     else:
-
         expire = (
             datetime.now(timezone.utc)
             + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)

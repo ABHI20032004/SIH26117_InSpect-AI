@@ -139,13 +139,12 @@ def login(
 
     # Create JWT
     access_token = create_access_token(
-        data={
-            "sub": str(user.id),
-            "username": user.username,
-            "role": user.role
-        },
-        expires_delta=timedelta(hours=1)
-    )
+    data={
+        "sub": str(user.id),
+        "username": user.username,
+        "role": user.role
+    }
+)
 
     return {
         "access_token": access_token,

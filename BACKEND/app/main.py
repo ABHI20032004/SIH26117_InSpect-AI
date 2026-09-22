@@ -14,6 +14,9 @@ from .routes.reports import router as reports_router
 from .routes.evidence import router as evidence_router
 from .routes.auth import router as auth_router
 from .routes.network import router as network_router
+from .routes.chats import router as chats_router
+
+from fastapi.staticfiles import StaticFiles
 
 
 # =====================================================
@@ -33,6 +36,12 @@ app = FastAPI(
     version="1.0.0"
 )
 
+
+app.mount(
+    "/chat-images",
+    StaticFiles(directory="data/chat_images"),
+    name="chat-images"
+)
 
 # =====================================================
 # CORS
@@ -99,6 +108,9 @@ app.include_router(
     network_router
 )
 
+app.include_router(
+    chats_router
+)
 
 # =====================================================
 # BASIC ROUTES

@@ -22,7 +22,13 @@ import {
   useState,
 } from "react";
 
-import { sendChatMessage } from "../services/api";
+import {
+  sendChatMessage,
+  getChats,
+  getChat,
+  renameChat,
+  deleteChat,
+} from "../services/api";
 
 
 // =====================================================
@@ -370,6 +376,13 @@ function FormattedAnswer({ text }) {
 
 function MessageBubble({ message }) {
 
+  const [previewImage, setPreviewImage] = useState(null);
+  const [imageZoom, setImageZoom] = useState(1);
+
+  const [imagePosition, setImagePosition] = useState({ x: 0, y: 0 });
+const [isDragging, setIsDragging] = useState(false);
+const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+
   const [copied, setCopied] =
     useState(false);
 
@@ -462,22 +475,43 @@ function MessageBubble({ message }) {
 
         <div className="message-text">
 
-  {message.image && (
-    <div className="uploaded-chat-image">
+{message.image && (
+  <div className="uploaded-chat-image">
+    <img
+      src={message.image}
+      alt={message.imageName || "Uploaded image"}
+ onClick={() => {
+  setPreviewImage(message.image);
+  setImageZoom(1);
+  setImagePosition({ x: 0, y: 0 });
+}}
+      title="Click to preview"
+    />
 
-      <img
-        src={message.image}
-        alt={message.imageName || "Uploaded image"}
-      />
+    {message.imageName && (
+      <div className="uploaded-image-name">
+        {message.imageName}
+      </div>
+    )}
+  </div>
+)}
 
-      {message.imageName && (
-        <div className="uploaded-image-name">
-          {message.imageName}
-        </div>
-      )}
-
-    </div>
-  )}
+{message.image_path && (
+  <div className="uploaded-chat-image">
+    <img
+      src={`http://127.0.0.1:8000/chat-images/${message.image_path.split(/[\\/]/).pop()}`}
+      alt="Uploaded image"
+      onClick={() => {
+  setPreviewImage(
+    `http://127.0.0.1:8000/chat-images/${message.image_path.split(/[\\/]/).pop()}`
+  );
+  setImageZoom(1);
+  setImagePosition({ x: 0, y: 0 });
+}}
+      title="Click to preview"
+    />
+  </div>
+)}
 
   <FormattedAnswer
     text={message.content}
@@ -547,6 +581,64 @@ function MessageBubble({ message }) {
 
       </div>
 
+{previewImage && (
+  <div
+    className="image-preview-overlay"
+    onClick={() => setPreviewImage(null)}
+    onWheel={(e) => {
+      e.preventDefault();
+
+      setImageZoom(current =>
+        Math.min(
+          3,
+          Math.max(
+            0.5,
+            current + (e.deltaY < 0 ? 0.1 : -0.1)
+          )
+        )
+      );
+    }}
+  >
+    <button
+      className="image-preview-close"
+      onClick={() => setPreviewImage(null)}
+    >
+      ✕
+    </button>
+
+    <img
+  src={previewImage}
+  alt="Full preview"
+  className="image-preview-full"
+  style={{
+    transform: `translate(${imagePosition.x}px, ${imagePosition.y}px) scale(${imageZoom})`,
+    cursor: isDragging ? "grabbing" : "grab"
+  }}
+  onClick={(e) => e.stopPropagation()}
+  onMouseDown={(e) => {
+    e.preventDefault();
+
+    setIsDragging(true);
+
+    setDragStart({
+      x: e.clientX - imagePosition.x,
+      y: e.clientY - imagePosition.y
+    });
+  }}
+  onMouseMove={(e) => {
+    if (!isDragging) return;
+
+    setImagePosition({
+      x: e.clientX - dragStart.x,
+      y: e.clientY - dragStart.y
+    });
+  }}
+  onMouseUp={() => setIsDragging(false)}
+  onMouseLeave={() => setIsDragging(false)}
+/>
+  </div>
+)}
+
     </div>
   );
 }
@@ -562,6 +654,11 @@ export default function Copilot() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+const [chats, setChats] = useState([]);
+const [currentChatId, setCurrentChatId] = useState(null);
+const [historyLoading, setHistoryLoading] = useState(false);
+const [showHistory, setShowHistory] = useState(false);
 
   const [selectedImage, setSelectedImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
@@ -610,7 +707,177 @@ export default function Copilot() {
       imageInputRef.current.value = "";
     }
   }
+  
+  // ===================================================
+// CHAT HISTORY
+// ===================================================
 
+async function loadChats() {
+  try {
+    setHistoryLoading(true);
+
+    const response = await getChats();
+
+    setChats(response.chats || []);
+
+  } catch (error) {
+    console.error(
+      "Failed to load chat history:",
+      error
+    );
+
+    if (error.message?.includes("401")) {
+      localStorage.removeItem("access_token");
+    }
+
+  } finally {
+    setHistoryLoading(false);
+  }
+}
+
+
+async function openChat(chatId) {
+  if (loading) {
+    return;
+  }
+
+  try {
+    setHistoryLoading(true);
+    setError("");
+
+    const response = await getChat(chatId);
+
+    const chat = response.chat;
+
+    setCurrentChatId(chat.id);
+
+    setMessages(
+      (chat.messages || []).map(message => ({
+        id: message.id,
+        role: message.role,
+        content: message.content,
+        model: message.model,
+        type: message.type,
+        sources: message.sources || [],
+        image_path: message.image_path || null,
+      }))
+    );
+
+    setInput("");
+
+  } catch (error) {
+    console.error(
+      "Failed to open chat:",
+      error
+    );
+
+    setError(
+      error.message ||
+      "Unable to open chat."
+    );
+
+  } finally {
+    setHistoryLoading(false);
+  }
+}
+
+
+async function handleDeleteChat(chatId) {
+  if (loading) {
+    return;
+  }
+
+  const confirmed = window.confirm(
+    "Delete this chat permanently?"
+  );
+
+  if (!confirmed) {
+    return;
+  }
+
+  try {
+
+    await deleteChat(chatId);
+
+    setChats(current =>
+      current.filter(
+        chat => chat.id !== chatId
+      )
+    );
+
+    if (currentChatId === chatId) {
+      newChat();
+    }
+
+  } catch (error) {
+
+    console.error(
+      "Failed to delete chat:",
+      error
+    );
+
+    setError(
+      error.message ||
+      "Unable to delete chat."
+    );
+  }
+}
+
+
+async function handleRenameChat(chatId, currentTitle) {
+
+  const newTitle = window.prompt(
+    "Enter new chat name:",
+    currentTitle
+  );
+
+  if (
+    newTitle === null ||
+    !newTitle.trim()
+  ) {
+    return;
+  }
+
+  try {
+
+    const response = await renameChat(
+      chatId,
+      newTitle.trim()
+    );
+
+    const updatedChat =
+      response.chat;
+
+    setChats(current =>
+      current.map(chat =>
+        chat.id === chatId
+          ? {
+              ...chat,
+              title: updatedChat.title,
+              updated_at:
+                updatedChat.updated_at,
+            }
+          : chat
+      )
+    );
+
+  } catch (error) {
+
+    console.error(
+      "Failed to rename chat:",
+      error
+    );
+
+    setError(
+      error.message ||
+      "Unable to rename chat."
+    );
+  }
+}
+
+useEffect(() => {
+  loadChats();
+}, []);
   // ===================================================
   // AUTO SCROLL
   // ===================================================
@@ -625,26 +892,31 @@ export default function Copilot() {
   // NEW CHAT
   // ===================================================
 
-  function newChat() {
-    setMessages([]);
-    setInput("");
-    setError("");
+function newChat() {
 
-    if (imagePreview) {
-      URL.revokeObjectURL(imagePreview);
-    }
+  setCurrentChatId(null);
 
-    setSelectedImage(null);
-    setImagePreview(null);
+  setMessages([]);
 
-    if (imageInputRef.current) {
-      imageInputRef.current.value = "";
-    }
+  setInput("");
 
-    setTimeout(() => {
-      textareaRef.current?.focus();
-    }, 50);
+  setError("");
+
+  if (imagePreview) {
+    URL.revokeObjectURL(imagePreview);
   }
+
+  setSelectedImage(null);
+  setImagePreview(null);
+
+  if (imageInputRef.current) {
+    imageInputRef.current.value = "";
+  }
+
+  setTimeout(() => {
+    textareaRef.current?.focus();
+  }, 50);
+}
 
   // ===================================================
   // SEND
@@ -706,14 +978,20 @@ const userMessage = {
        * PDF     → RAG + llama3.1:8b
        */
 
-      const response =
+const response =
   await sendChatMessage({
 
     message: question,
 
     image: selectedImage,
 
+    chat_id: currentChatId,
+
   });
+
+  if (response.chat_id) {
+  setCurrentChatId(response.chat_id);
+}
 
 
       const assistantMessage = {
@@ -742,6 +1020,8 @@ const userMessage = {
         ...current,
         assistantMessage,
       ]);
+
+      await loadChats();
 
 
     } catch (error) {
@@ -802,6 +1082,119 @@ const userMessage = {
 
   return (
     <div className="copilot-page">
+
+      {/* =====================================================
+    CHAT HISTORY
+===================================================== */}
+
+<div className="chat-history-panel">
+
+  <div className="chat-history-header">
+
+    <div>
+      <h3>Chat History</h3>
+    </div>
+
+    <button
+      type="button"
+      onClick={() =>
+        setShowHistory(current => !current)
+      }
+      className="chat-history-toggle"
+    >
+      {showHistory ? "Hide" : "Show"}
+    </button>
+
+  </div>
+
+
+  {showHistory && (
+
+    <div className="chat-history-list">
+
+      {historyLoading && (
+        <div className="chat-history-loading">
+          Loading chats...
+        </div>
+      )}
+
+
+      {!historyLoading &&
+        chats.length === 0 && (
+
+        <div className="chat-history-empty">
+          No previous chats
+        </div>
+
+      )}
+
+
+      {!historyLoading &&
+        chats.map(chat => (
+
+        <div
+          key={chat.id}
+          className={
+            currentChatId === chat.id
+              ? "chat-history-item active"
+              : "chat-history-item"
+          }
+        >
+
+          <button
+            type="button"
+            className="chat-history-open"
+            onClick={() =>
+              openChat(chat.id)
+            }
+          >
+
+            <FileText size={20} />
+
+            <span>
+              {chat.title}
+            </span>
+
+          </button>
+
+
+          <div className="chat-history-actions">
+
+            <button
+              type="button"
+              onClick={() =>
+                handleRenameChat(
+                  chat.id,
+                  chat.title
+                )
+              }
+              title="Rename chat"
+            >
+              Rename
+            </button>
+
+
+            <button
+              type="button"
+              onClick={() =>
+                handleDeleteChat(chat.id)
+              }
+              title="Delete chat"
+            >
+              <Trash2 size={21} />
+            </button>
+
+          </div>
+
+        </div>
+
+      ))}
+
+    </div>
+
+  )}
+
+</div>
 
 
       {/* ================================================
@@ -1255,6 +1648,15 @@ const userMessage = {
 
       )}
 
+      
+
+      
+
     </div>
+
+    
+    
   );
+
+  
 }

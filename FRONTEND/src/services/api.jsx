@@ -117,62 +117,55 @@ export async function deleteDocument(
 // CHAT
 // =====================================================
 export async function sendChatMessage(data) {
+  const formData = new FormData();
 
-  const formData =
-    new FormData();
-
-  formData.append(
-    "message",
-    data.message
-  );
-
-  formData.append(
-    "has_pdf",
-    "false"
-  );
-
+  formData.append("message", data.message);
+  formData.append("has_pdf", data.has_pdf ? "true" : "false");
   formData.append(
     "has_image",
     data.image ? "true" : "false"
   );
 
   if (data.mode) {
+    formData.append("mode", data.mode);
+  }
 
+  if (data.chat_id) {
     formData.append(
-      "mode",
-      data.mode
+      "chat_id",
+      String(data.chat_id)
     );
-
   }
 
   if (data.image) {
-
-    formData.append(
-      "image",
-      data.image
-    );
-
+    formData.append("image", data.image);
   }
 
-  const response =
-    await fetch(
-      `${API_URL}/api/chat`,
-      {
-        method: "POST",
-        body: formData,
-      }
-    );
+  // Get JWT token saved during login
+  const token = localStorage.getItem("access_token");
 
-  const result =
-    await response.json();
+  const headers = {};
+
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+
+  const response = await fetch(
+    `${API_URL}/api/chat`,
+    {
+      method: "POST",
+      headers,
+      body: formData,
+    }
+  );
+
+  const result = await response.json();
 
   if (!response.ok) {
-
     throw new Error(
       result.detail ||
       "Failed to get AI response"
     );
-
   }
 
   return result;
@@ -566,4 +559,128 @@ export async function deleteEvidence(
   }
 
   return response.json();
+}
+
+
+export async function getChats() {
+
+  const token =
+    localStorage.getItem("access_token");
+
+  const response = await fetch(
+    `${API_URL}/api/chats`,
+    {
+      method: "GET",
+
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+
+  const result =
+    await response.json();
+
+  if (!response.ok) {
+    throw new Error(
+      result.detail ||
+      "Failed to load chats"
+    );
+  }
+
+  return result;
+}
+
+
+export async function getChat(chatId) {
+
+  const token =
+    localStorage.getItem("access_token");
+
+  const response = await fetch(
+    `${API_URL}/api/chats/${chatId}`,
+    {
+      method: "GET",
+
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+
+  const result =
+    await response.json();
+
+  if (!response.ok) {
+    throw new Error(
+      result.detail ||
+      "Failed to load chat"
+    );
+  }
+
+  return result;
+}
+
+
+export async function renameChat(chatId, title) {
+  const token = localStorage.getItem("access_token");
+
+  console.log("Rename chat token exists:", !!token);
+  console.log("Renaming chat:", chatId, title);
+
+  if (!token) {
+    throw new Error("Authentication token missing. Please login again.");
+  }
+
+  const response = await fetch(`${API_URL}/api/chats/${chatId}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`,
+    },
+    body: JSON.stringify({
+      title: title.trim(),
+    }),
+  });
+
+  const result = await response.json();
+
+  if (!response.ok) {
+    throw new Error(result.detail || "Failed to rename chat");
+  }
+
+  return result;
+}
+
+
+export async function deleteChat(
+  chatId
+) {
+
+  const token =
+    localStorage.getItem("access_token");
+
+  const response = await fetch(
+    `${API_URL}/api/chats/${chatId}`,
+    {
+      method: "DELETE",
+
+      headers: {
+        Authorization:
+          `Bearer ${token}`,
+      },
+    }
+  );
+
+  const result =
+    await response.json();
+
+  if (!response.ok) {
+    throw new Error(
+      result.detail ||
+      "Failed to delete chat"
+    );
+  }
+
+  return result;
 }

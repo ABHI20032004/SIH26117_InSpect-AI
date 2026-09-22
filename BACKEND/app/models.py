@@ -215,3 +215,55 @@ class Report(Base):
         DateTime,
         default=datetime.utcnow
     )
+
+
+class Chat(Base):
+    __tablename__ = "chats"
+
+    id = Column(
+        Integer,
+        primary_key=True,
+        index=True
+    )
+
+    user_id = Column(
+        Integer,
+        ForeignKey("users.id"),
+        nullable=False,
+        index=True
+    )
+
+    title = Column(
+        String,
+        default="New Chat",
+        nullable=False
+    )
+
+    created_at = Column(
+        DateTime,
+        default=datetime.utcnow
+    )
+
+    updated_at = Column(
+        DateTime,
+        default=datetime.utcnow
+    )
+
+class ChatMessage(Base):
+    __tablename__ = "chat_messages"
+
+    id = Column(Integer, primary_key=True, index=True)
+    chat_id = Column(Integer, ForeignKey("chats.id"), nullable=False, index=True)
+
+    role = Column(String, nullable=False)
+    content = Column(Text, nullable=False)
+
+    model = Column(String, nullable=True)
+    message_type = Column(String, nullable=True)
+    sources = Column(Text, nullable=True)
+
+    # NEW
+    image_path = Column(String, nullable=True)
+
+
+    created_at = Column(DateTime, default=datetime.utcnow)
