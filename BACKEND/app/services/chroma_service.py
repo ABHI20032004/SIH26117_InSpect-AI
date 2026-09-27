@@ -71,25 +71,35 @@ def add_chunks(chunks):
 
 def search_chunks(
     query_embedding,
-    top_k=5
+    top_k=5,
+    document_id=None
 ):
 
     if collection.count() == 0:
         return []
 
-    results = collection.query(
-
-        query_embeddings=[
+    query_params = {
+        "query_embeddings": [
             query_embedding
         ],
+        "n_results": top_k
+    }
 
-        n_results=top_k
+    # --------------------------------
+    # Filter by selected PDF
+    # --------------------------------
 
+    if document_id is not None:
+
+        query_params["where"] = {
+            "document_id": str(document_id)
+        }
+
+    results = collection.query(
+        **query_params
     )
 
     return results
-
-
 def delete_document_chunks(document_id):
     """
     Delete all ChromaDB chunks belonging to a document.

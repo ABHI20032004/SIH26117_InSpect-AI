@@ -208,6 +208,7 @@ def route_question(
     has_image: bool = False,
     requested_mode: str | None = None,
     image_path: str | None = None,
+    pdf_id: int | None = None,
 ):
 
     # -----------------------------------------------------
@@ -283,7 +284,8 @@ def route_question(
     if question_type == "pdf":
 
         result = ask_pdf_question(
-            question
+            question,
+            document_id=pdf_id
         )
 
         return {

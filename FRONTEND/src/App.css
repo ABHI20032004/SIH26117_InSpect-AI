@@ -5608,3 +5608,734 @@ button {
 .image-preview-close:hover {
   background: rgba(255, 255, 255, 0.25);
 }
+
+
+/* =====================================================
+   PDF / ATTACHMENT UI
+   ===================================================== */
+
+/* Attachment wrapper */
+.attachment-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+
+/* =====================================================
+   ATTACHMENT MENU
+   ===================================================== */
+
+.attachment-menu {
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 12px);
+
+  width: 310px;
+  max-height: 420px;
+
+  padding: 10px;
+
+  background: #ffffff;
+
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+
+  box-shadow:
+    0 12px 35px rgba(15, 23, 42, 0.14),
+    0 3px 10px rgba(15, 23, 42, 0.06);
+
+  z-index: 1000;
+
+  overflow-y: auto;
+
+  animation: attachmentMenuOpen 0.16s ease-out;
+}
+
+
+@keyframes attachmentMenuOpen {
+
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+}
+
+
+/* =====================================================
+   ATTACHMENT MENU BUTTONS
+   ===================================================== */
+
+.attachment-menu > button {
+  width: 100%;
+
+  display: flex;
+  align-items: center;
+  gap: 11px;
+
+  padding: 10px 12px;
+
+  border: none;
+  border-radius: 9px;
+
+  background: transparent;
+
+  color: #1f2937;
+
+  font-size: 14px;
+  font-weight: 500;
+
+  cursor: pointer;
+
+  text-align: left;
+
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+
+.attachment-menu > button:hover {
+  background: #f3f4f6;
+  color: #111827;
+}
+
+
+.attachment-menu > button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+
+/* =====================================================
+   MENU TITLE
+   ===================================================== */
+
+.attachment-menu-title {
+  padding: 9px 10px 7px;
+
+  color: #6b7280;
+
+  font-size: 11px;
+  font-weight: 700;
+
+  text-transform: uppercase;
+
+  letter-spacing: 0.06em;
+}
+
+
+/* =====================================================
+   DIVIDER
+   ===================================================== */
+
+.attachment-divider {
+  height: 1px;
+
+  margin: 7px 4px;
+
+  background: #e5e7eb;
+}
+
+
+/* =====================================================
+   EXISTING PDF LIST
+   ===================================================== */
+
+.attachment-documents {
+  display: flex;
+  flex-direction: column;
+
+  gap: 4px;
+
+  max-height: 240px;
+
+  overflow-y: auto;
+}
+
+
+/* =====================================================
+   EXISTING PDF ITEM
+   ===================================================== */
+
+.attachment-document {
+  width: 100%;
+
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  padding: 10px;
+
+  border: none;
+  border-radius: 10px;
+
+  background: transparent;
+
+  color: #1f2937;
+
+  cursor: pointer;
+
+  text-align: left;
+
+  transition:
+    background 0.15s ease,
+    transform 0.15s ease;
+}
+
+
+.attachment-document:hover {
+  background: #f8fafc;
+
+  transform: translateX(2px);
+}
+
+
+.attachment-document:disabled {
+  opacity: 0.55;
+
+  cursor: not-allowed;
+
+  transform: none;
+}
+
+
+/* PDF icon */
+
+.attachment-document > svg {
+  flex-shrink: 0;
+
+  color: #dc2626;
+}
+
+
+/* =====================================================
+   PDF DOCUMENT INFORMATION
+   ===================================================== */
+
+.attachment-document-info {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 3px;
+}
+
+
+.attachment-document-info strong {
+  display: block;
+
+  max-width: 225px;
+
+  overflow: hidden;
+
+  white-space: nowrap;
+
+  text-overflow: ellipsis;
+
+  color: #111827;
+
+  font-size: 13px;
+
+  font-weight: 600;
+}
+
+
+.attachment-document-info small {
+  color: #6b7280;
+
+  font-size: 11px;
+
+  line-height: 1.3;
+}
+
+
+/* =====================================================
+   LOADING / EMPTY STATES
+   ===================================================== */
+
+.attachment-loading,
+.attachment-empty {
+  padding: 14px 10px;
+
+  color: #6b7280;
+
+  font-size: 13px;
+
+  text-align: center;
+}
+
+
+.attachment-loading {
+  animation: attachmentPulse 1.4s ease-in-out infinite;
+}
+
+
+@keyframes attachmentPulse {
+
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+}
+
+
+/* =====================================================
+   SELECTED PDF PREVIEW
+   ===================================================== */
+
+.selected-pdf-preview {
+  width: 100%;
+
+  display: flex;
+  align-items: center;
+
+  gap: 11px;
+
+  padding: 10px 12px;
+
+  margin-bottom: 9px;
+
+  background: #f8fafc;
+
+  border: 1px solid #e2e8f0;
+
+  border-radius: 12px;
+
+  box-sizing: border-box;
+}
+
+
+/* =====================================================
+   SELECTED PDF ICON
+   ===================================================== */
+
+.selected-pdf-icon {
+  width: 38px;
+  height: 38px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 9px;
+
+  background: #fee2e2;
+
+  color: #dc2626;
+}
+
+
+/* =====================================================
+   SELECTED PDF INFORMATION
+   ===================================================== */
+
+.selected-pdf-info {
+  min-width: 0;
+
+  flex: 1;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 3px;
+}
+
+
+.selected-pdf-info strong {
+  display: block;
+
+  overflow: hidden;
+
+  white-space: nowrap;
+
+  text-overflow: ellipsis;
+
+  color: #111827;
+
+  font-size: 13px;
+
+  font-weight: 600;
+}
+
+
+.selected-pdf-info span {
+  color: #64748b;
+
+  font-size: 11px;
+}
+
+
+/* =====================================================
+   REMOVE SELECTED PDF
+   ===================================================== */
+
+.remove-selected-pdf {
+  width: 27px;
+  height: 27px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  border: none;
+
+  border-radius: 7px;
+
+  background: transparent;
+
+  color: #64748b;
+
+  cursor: pointer;
+
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+
+.remove-selected-pdf:hover {
+  background: #fee2e2;
+
+  color: #dc2626;
+}
+
+
+.remove-selected-pdf:disabled {
+  opacity: 0.5;
+
+  cursor: not-allowed;
+}
+
+
+/* =====================================================
+   ATTACHMENT BUTTON
+   ===================================================== */
+
+.image-upload-button {
+  position: relative;
+
+  width: 38px;
+  height: 38px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  border: none;
+
+  border-radius: 9px;
+
+  background: transparent;
+
+  color: #64748b;
+
+  cursor: pointer;
+
+  transition:
+    background 0.15s ease,
+    color 0.15s ease,
+    transform 0.15s ease;
+}
+
+
+.image-upload-button:hover {
+  background: #f1f5f9;
+
+  color: #334155;
+}
+
+
+.image-upload-button:active {
+  transform: scale(0.95);
+}
+
+
+.image-upload-button:disabled {
+  opacity: 0.5;
+
+  cursor: not-allowed;
+
+  transform: none;
+}
+
+
+/* =====================================================
+   EXISTING IMAGE PREVIEW
+   Keep compatible with current UI
+   ===================================================== */
+
+.selected-image-preview {
+  width: 100%;
+
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  padding: 9px 11px;
+
+  margin-bottom: 9px;
+
+  background: #f8fafc;
+
+  border: 1px solid #e2e8f0;
+
+  border-radius: 12px;
+
+  box-sizing: border-box;
+}
+
+
+.selected-image-preview-img {
+  width: 44px;
+  height: 44px;
+
+  object-fit: cover;
+
+  border-radius: 8px;
+
+  border: 1px solid #e5e7eb;
+}
+
+
+.selected-image-info {
+  flex: 1;
+
+  min-width: 0;
+}
+
+
+.selected-image-info span {
+  display: block;
+
+  overflow: hidden;
+
+  white-space: nowrap;
+
+  text-overflow: ellipsis;
+
+  color: #334155;
+
+  font-size: 12px;
+
+  font-weight: 500;
+}
+
+
+.remove-selected-image {
+  width: 27px;
+  height: 27px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  border: none;
+
+  border-radius: 7px;
+
+  background: transparent;
+
+  color: #64748b;
+
+  cursor: pointer;
+
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+
+.remove-selected-image:hover {
+  background: #fee2e2;
+
+  color: #dc2626;
+}
+
+
+/* =====================================================
+   PDF SOURCE CARDS
+   Existing source rendering in MessageBubble
+   ===================================================== */
+
+.message-sources {
+  margin-top: 14px;
+
+  padding: 11px;
+
+  background: #f8fafc;
+
+  border: 1px solid #e2e8f0;
+
+  border-radius: 11px;
+}
+
+
+.sources-title {
+  display: flex;
+  align-items: center;
+
+  gap: 7px;
+
+  margin-bottom: 8px;
+
+  color: #334155;
+
+  font-size: 12px;
+
+  font-weight: 700;
+}
+
+
+.sources-title svg {
+  color: #dc2626;
+}
+
+
+.sources-list {
+  display: flex;
+  flex-direction: column;
+
+  gap: 5px;
+}
+
+
+.source-item {
+  display: flex;
+  align-items: center;
+
+  gap: 7px;
+
+  padding: 7px 8px;
+
+  background: #ffffff;
+
+  border: 1px solid #e5e7eb;
+
+  border-radius: 7px;
+
+  font-size: 11px;
+}
+
+
+.source-item svg {
+  flex-shrink: 0;
+
+  color: #64748b;
+}
+
+
+.source-filename {
+  flex: 1;
+
+  min-width: 0;
+
+  overflow: hidden;
+
+  white-space: nowrap;
+
+  text-overflow: ellipsis;
+
+  color: #475569;
+}
+
+
+.source-page {
+  flex-shrink: 0;
+
+  padding: 3px 7px;
+
+  border-radius: 5px;
+
+  background: #f1f5f9;
+
+  color: #64748b;
+
+  font-size: 10px;
+
+  font-weight: 600;
+}
+
+
+/* =====================================================
+   MOBILE
+   ===================================================== */
+
+@media (max-width: 600px) {
+
+  .attachment-menu {
+    left: 0;
+
+    width: min(
+      300px,
+      calc(100vw - 30px)
+    );
+
+    max-height: 360px;
+  }
+
+
+  .attachment-document-info strong {
+    max-width: 190px;
+  }
+
+
+  .selected-pdf-preview {
+    padding: 9px;
+  }
+
+
+  .selected-pdf-icon {
+    width: 34px;
+    height: 34px;
+  }
+
+
+  .selected-pdf-info strong {
+    font-size: 12px;
+  }
+
+
+  .message-sources {
+    padding: 9px;
+  }
+
+
+  .source-item {
+    align-items: flex-start;
+
+    flex-wrap: wrap;
+  }
+
+
+  .source-filename {
+    max-width: calc(100% - 30px);
+  }
+
+}

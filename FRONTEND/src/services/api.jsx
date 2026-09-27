@@ -137,6 +137,13 @@ export async function sendChatMessage(data) {
     );
   }
 
+  if (data.pdf_id) {
+  formData.append(
+    "pdf_id",
+    String(data.pdf_id)
+  );
+  }
+
   if (data.image) {
     formData.append("image", data.image);
   }
@@ -563,7 +570,6 @@ export async function deleteEvidence(
 
 
 export async function getChats() {
-
   const token =
     localStorage.getItem("access_token");
 

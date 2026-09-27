@@ -10,7 +10,8 @@ from .chroma_service import (
 
 def ask_pdf_question(
     question: str,
-    top_k: int = 5
+    top_k: int = 5,
+    document_id: int | None = None
 ):
 
     # --------------------------------
@@ -27,7 +28,8 @@ def ask_pdf_question(
 
     results = search_chunks(
         query_embedding,
-        top_k
+        top_k,
+        document_id
     )
 
     if not results:

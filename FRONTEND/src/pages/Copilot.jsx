@@ -28,8 +28,9 @@ import {
   getChat,
   renameChat,
   deleteChat,
+  getDocuments,
+  uploadDocument
 } from "../services/api";
-
 
 // =====================================================
 // FORMAT INLINE TEXT
@@ -663,7 +664,13 @@ const [showHistory, setShowHistory] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
 
+  const [selectedPdf, setSelectedPdf] = useState(null);
+  const [documents, setDocuments] = useState([]);
+  const [showAttachmentMenu, setShowAttachmentMenu] = useState(false);
+  const [documentsLoading, setDocumentsLoading] = useState(false);
+
   const imageInputRef = useRef(null);
+  const pdfInputRef = useRef(null);
   const bottomRef = useRef(null);
   const textareaRef = useRef(null);
 
@@ -708,6 +715,172 @@ const [showHistory, setShowHistory] = useState(false);
     }
   }
   
+  // ===================================================
+// PDF SELECTION
+// ===================================================
+
+async function loadDocuments() {
+  try {
+    setDocumentsLoading(true);
+
+    const response = await getDocuments();
+
+    setDocuments(response.documents || []);
+
+  } catch (error) {
+
+    console.error(
+      "Failed to load documents:",
+      error
+    );
+
+    setError(
+      error.message ||
+      "Unable to load PDF documents."
+    );
+
+  } finally {
+
+    setDocumentsLoading(false);
+
+  }
+}
+
+
+// ===================================================
+// SELECT EXISTING PDF
+// ===================================================
+
+function handleSelectExistingPdf(document) {
+
+  if (document.status !== "ready") {
+
+    setError(
+      "This PDF is still being processed."
+    );
+
+    return;
+  }
+
+  setSelectedPdf(document);
+
+  setShowAttachmentMenu(false);
+
+  setError("");
+}
+
+
+// ===================================================
+// UPLOAD PDF FROM SYSTEM
+// ===================================================
+
+async function handlePdfSelect(event) {
+
+  const file = event.target.files?.[0];
+
+  if (!file) {
+    return;
+  }
+
+  if (
+    file.type !== "application/pdf" &&
+    !file.name.toLowerCase().endsWith(".pdf")
+  ) {
+
+    setError(
+      "Please select a valid PDF file."
+    );
+
+    return;
+  }
+
+  try {
+
+    setLoading(true);
+    setError("");
+
+    const result =
+      await uploadDocument(file);
+
+    /*
+     * Backend returns:
+     *
+     * document_id
+     * filename
+     * pages
+     * chunks
+     * status
+     */
+
+    const uploadedPdf = {
+
+      id: result.document_id,
+
+      filename:
+        result.filename ||
+        file.name,
+
+      pages:
+        result.pages || 0,
+
+      chunks:
+        result.chunks || 0,
+
+      status:
+        result.status || "ready"
+
+    };
+
+    setSelectedPdf(uploadedPdf);
+
+    // Refresh existing document list
+    await loadDocuments();
+
+    setShowAttachmentMenu(false);
+
+  } catch (error) {
+
+    console.error(
+      "PDF upload failed:",
+      error
+    );
+
+    setError(
+      error.message ||
+      "Failed to upload PDF."
+    );
+
+  } finally {
+
+    setLoading(false);
+
+    if (pdfInputRef.current) {
+      pdfInputRef.current.value = "";
+    }
+
+  }
+}
+
+
+// ===================================================
+// REMOVE SELECTED PDF
+// ===================================================
+
+function removeSelectedPdf() {
+
+  setSelectedPdf(null);
+
+}
+
+async function openAttachmentMenu() {
+
+  setShowAttachmentMenu(
+    current => !current
+  );
+
+  await loadDocuments();
+
+}
   // ===================================================
 // CHAT HISTORY
 // ===================================================
@@ -984,6 +1157,12 @@ const response =
     message: question,
 
     image: selectedImage,
+
+    pdf_id:
+      selectedPdf?.id || null,
+
+    has_pdf:
+      Boolean(selectedPdf),
 
     chat_id: currentChatId,
 
@@ -1533,6 +1712,41 @@ const response =
     </div>
   )}
 
+  {/* Selected PDF */}
+{selectedPdf && (
+  <div className="selected-pdf-preview">
+
+    <div className="selected-pdf-icon">
+      <FileText size={22} />
+    </div>
+
+    <div className="selected-pdf-info">
+
+      <strong>
+        {selectedPdf.filename}
+      </strong>
+
+      <span>
+        {selectedPdf.pages || 0} pages
+        {" • "}
+        {selectedPdf.chunks || 0} chunks
+      </span>
+
+    </div>
+
+    <button
+      type="button"
+      onClick={removeSelectedPdf}
+      disabled={loading}
+      title="Remove PDF"
+      className="remove-selected-pdf"
+    >
+      <X size={14} />
+    </button>
+
+  </div>
+)}
+
   <div className="copilot-input-box">
 
     <input
@@ -1542,18 +1756,124 @@ const response =
       onChange={handleImageSelect}
       style={{ display: "none" }}
     />
+    <input
+    ref={pdfInputRef}
+    type="file"
+    accept="application/pdf,.pdf"
+    onChange={handlePdfSelect}
+    style={{ display: "none" }}
+  />
 
-    <button
-      type="button"
-      className="image-upload-button"
-      onClick={() =>
-        imageInputRef.current?.click()
-      }
-      disabled={loading}
-      title="Upload image for OCR"
-    >
-      <Paperclip size={18} />
-    </button>
+    <div className="attachment-container">
+
+  <button
+    type="button"
+    className="image-upload-button"
+    onClick={openAttachmentMenu}
+    disabled={loading}
+    title="Attach image or PDF"
+  >
+    <Paperclip size={18} />
+  </button>
+
+
+  {showAttachmentMenu && (
+
+    <div className="attachment-menu">
+
+      <button
+        type="button"
+        onClick={() => {
+          setShowAttachmentMenu(false);
+          imageInputRef.current?.click();
+        }}
+      >
+        <ImageIcon size={16} />
+        <span>Upload Image</span>
+      </button>
+
+
+      <button
+        type="button"
+        onClick={() => {
+          setShowAttachmentMenu(false);
+          pdfInputRef.current?.click();
+        }}
+      >
+        <FileText size={16} />
+        <span>Upload PDF</span>
+      </button>
+
+
+      <div className="attachment-divider" />
+
+
+      <div className="attachment-menu-title">
+        Existing PDFs
+      </div>
+
+
+      {documentsLoading ? (
+
+        <div className="attachment-loading">
+          Loading PDFs...
+        </div>
+
+      ) : documents.length === 0 ? (
+
+        <div className="attachment-empty">
+          No PDFs available
+        </div>
+
+      ) : (
+
+        <div className="attachment-documents">
+
+          {documents.map(document => (
+
+            <button
+              key={document.id}
+              type="button"
+              className="attachment-document"
+              onClick={() =>
+                handleSelectExistingPdf(
+                  document
+                )
+              }
+              disabled={
+                document.status !== "ready"
+              }
+            >
+
+              <FileText size={16} />
+
+              <span className="attachment-document-info">
+
+                <strong>
+                  {document.filename}
+                </strong>
+
+                <small>
+                  {document.pages} pages
+                  {" • "}
+                  {document.status}
+                </small>
+
+              </span>
+
+            </button>
+
+          ))}
+
+        </div>
+
+      )}
+
+    </div>
+
+  )}
+
+</div>
 
     <textarea
       ref={textareaRef}
@@ -1562,7 +1882,7 @@ const response =
         setInput(event.target.value)
       }
       onKeyDown={handleKeyDown}
-      placeholder="Ask NSpectAI anything..."
+      placeholder="Ask the InSpect AI about anything..."
       rows={1}
       disabled={loading}
     />

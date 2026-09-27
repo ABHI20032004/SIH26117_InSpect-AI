@@ -72,6 +72,8 @@ async def chat(
 
     has_image: bool = Form(False),
 
+    pdf_id: Optional[int] = Form(None),
+
     chat_id: Optional[int] = Form(None),
 
     image: Optional[UploadFile] = File(None),
@@ -230,7 +232,9 @@ async def chat(
 
             requested_mode=mode,
 
-            image_path=image_path
+            image_path=image_path,
+
+            pdf_id=pdf_id
         )
 
 
