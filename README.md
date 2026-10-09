@@ -23,7 +23,7 @@ NSpectAI is an OFFLINE on-premise, local-first AI workbench designed for confide
 - [Frontend Setup](#frontend-setup)
 - [Ollama Model Setup](#ollama-model-setup)
 - [Running the Project](#running-the-project)
-- [Using NSpectAI](#using-nspectai)
+- [Using InSpectAI](#using-nspectai)
 - [PDF / RAG Workflow](#pdf--rag-workflow)
 - [Inspection Workflow](#inspection-workflow)
 - [AI Model Routing](#ai-model-routing)
@@ -59,7 +59,7 @@ NSpectAI provides a local AI workbench in which the major AI processing pipeline
 
 ```text
                  ┌─────────────────────────┐
-                 │       NSpectAI UI        │
+                 │       InSpectAI UI        │
                  │ React + Vite             │
                  └────────────┬────────────┘
                               │
@@ -203,7 +203,7 @@ The application can expose application-level network information to help demonst
 ### High-Level Architecture
 
 ```text
-                         NSpectAI
+                         InSpectAI
                             │
               ┌─────────────┴─────────────┐
               │                           │
@@ -420,7 +420,7 @@ Report
 ## Project Structure
 
 ```text
-NSpectAI/
+InSpectAI/
 │
 ├── backend/
 │   ├── app/
